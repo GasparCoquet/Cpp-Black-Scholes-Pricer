@@ -1,4 +1,5 @@
 # cpp-black-scholes-pricer
+[![CI](https://github.com/<OWNER>/cpp-black-scholes-pricer/actions/workflows/build.yml/badge.svg)](https://github.com/<OWNER>/cpp-black-scholes-pricer/actions/workflows/build.yml)
 
 High-performance C++ implementation of the Black-Scholes model for pricing European options and computing Greeks (Delta, Gamma, Vega, Theta, Rho).
 

@@ -44,8 +44,8 @@ std::vector<double> price_chunk(const std::vector<Option>& options, size_t start
 
 std::vector<double> price_multi_thread(const std::vector<Option>& options, int num_threads) {
     std::vector<std::future<std::vector<double>>> futures;
-    size_t n = options.size();
-    size_t chunk = n / num_threads;
+    const size_t n = options.size();
+    const size_t chunk = n / num_threads;
     for (int t = 0; t < num_threads; ++t) {
         size_t start = t * chunk;
         size_t end = (t == num_threads - 1) ? n : (t + 1) * chunk;
@@ -61,7 +61,7 @@ std::vector<double> price_multi_thread(const std::vector<Option>& options, int n
 
 int main() {
     constexpr size_t N = 1000000;
-    auto options = generate_options(N);
+    const auto options = generate_options(N);
     int num_threads = std::thread::hardware_concurrency();
     if (num_threads < 2) num_threads = 2;
 
