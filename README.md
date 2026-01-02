@@ -56,6 +56,8 @@ Put Price:  5.57353
 .\Debug\benchmark.exe
 ```
 
+The benchmark prices 1,000,000 random options and compares single-threaded vs multi-threaded execution (using hardware_concurrency) and prints the speedup.
+
 ## Testing
 
 Run tests from the build directory:
