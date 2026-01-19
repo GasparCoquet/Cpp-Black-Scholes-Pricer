@@ -106,6 +106,64 @@ double gamma = BlackScholes::gamma(S, K, r, T, sigma);
 double vega = BlackScholes::vega(S, K, r, T, sigma);
 ```
 
+## Python Bindings (Pybind11)
+
+### Installation
+
+Install the Python module using pip:
+
+```bash
+pip install pybind11
+pip install .
+```
+
+Or for development mode:
+
+```bash
+pip install -e .
+```
+
+### Python Usage
+
+```python
+import black_scholes as bs
+
+# Market parameters
+S = 100.0      # Spot price
+K = 100.0      # Strike price
+r = 0.05       # Risk-free rate (5%)
+T = 1.0        # Time to maturity (1 year)
+sigma = 0.2    # Volatility (20%)
+
+# Calculate option prices
+call_price = bs.call_price(S, K, r, T, sigma)
+put_price = bs.put_price(S, K, r, T, sigma)
+
+# Calculate Greeks
+delta = bs.call_delta(S, K, r, T, sigma)
+gamma = bs.gamma(S, K, r, T, sigma)
+vega = bs.vega(S, K, r, T, sigma)
+theta = bs.call_theta(S, K, r, T, sigma)
+rho = bs.call_rho(S, K, r, T, sigma)
+
+print(f"Call Price: {call_price:.4f}")
+print(f"Delta: {delta:.6f}")
+```
+
+### Run Python Example
+
+```bash
+python examples/python_example.py
+```
+
+### Performance Benefits
+
+Python bindings provide **10-100x speedup** over pure Python implementations:
+- C++ compiled code
+- No Python overhead
+- Perfect for high-frequency calculations
+- Ideal for backtesting and real-time pricing
+
 ## Project Structure
 
 ```
@@ -113,11 +171,15 @@ cpp-black-scholes-pricer/
 ├── src/
 │   ├── BlackScholes.h        # Header file
 │   ├── BlackScholes.cpp      # Implementation
+│   ├── bindings.cpp          # Pybind11 bindings
 │   ├── main.cpp              # Demo program
 │   └── main_benchmark.cpp    # Benchmark program
 ├── tests/
 │   └── test_greeks.cpp       # Unit tests
+├── examples/
+│   └── python_example.py     # Python usage example
 ├── CMakeLists.txt            # Build configuration
+├── setup.py                  # Python package setup
 └── README.md
 ```
 
