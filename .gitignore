@@ -9,3 +9,14 @@ Makefile
 *.exe
 *.out
 *.log
+
+# Python build artifacts
+*.pyd
+*.so
+__pycache__/
+*.py[cod]
+*$py.class
+dist/
+*.egg-info/
+.eggs/
+*.egg
