@@ -24,6 +24,17 @@ else()
 endif()
 
 # Testing
+#
+# NOTE: these tests must keep working under CMAKE_BUILD_TYPE=Release, which
+# defines NDEBUG. They deliberately do not use assert(), which NDEBUG compiles
+# away to nothing -- see tests/check.h.
 enable_testing()
+
 add_executable(test_greeks tests/test_greeks.cpp src/BlackScholes.cpp)
 add_test(NAME GreeksTest COMMAND test_greeks)
+
+add_executable(test_implied_vol tests/test_implied_vol.cpp src/BlackScholes.cpp)
+add_test(NAME ImpliedVolTest COMMAND test_implied_vol)
+
+add_executable(test_edge_cases tests/test_edge_cases.cpp src/BlackScholes.cpp)
+add_test(NAME EdgeCaseTest COMMAND test_edge_cases)

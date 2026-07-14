@@ -11,6 +11,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Release => -O3 -DNDEBUG. The test suite deliberately does NOT use
+      # assert(), which NDEBUG would compile away; see tests/check.h.
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
@@ -19,3 +21,40 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure --build-config Release
+
+      # ctest swallows stdout when a test passes. Run the binaries directly so
+      # the number of assertions actually evaluated is visible in the log. A
+      # test binary that passes silently, evaluating nothing, is precisely the
+      # failure this workflow used to have.
+      - name: Show assertion counts
+        run: |
+          ./build/test_greeks
+          ./build/test_implied_vol
+          ./build/test_edge_cases
+
+      # The output block in the README is copied from this step. If the numbers
+      # ever change, the diff is right here in the log.
+      - name: Run the demo program
+        run: ./build/cpp-black-scholes-pricer
+
+  python-example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build and install the extension module from source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pybind11
+          python -m pip install .
+
+      # The example asserts put-call parity and the round-trip of the implied
+      # vol solver, so a wrong pricer fails this job with a nonzero exit code.
+      - name: Run the Python example
+        run: python examples/python_example.py
