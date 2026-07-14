@@ -1,6 +1,8 @@
 """
 Example usage of the Black-Scholes Python bindings
 """
+import math
+
 import black_scholes as bs
 
 def main():
@@ -52,9 +54,9 @@ def main():
     print(f"\n{'Put-Call Parity Verification':^60}")
     print("-" * 60)
     lhs = call_price - put_price
-    rhs = S - K * bs.norm_cdf(0) * (1 / (1 + r)) ** T  # Simplified
-    print(f"  C - P = {lhs:.6f}")
-    print(f"  S - Ke^(-rT) = {S - K * (1 / (1 + r)) ** T:.6f}")
+    rhs = S - K * math.exp(-r * T)
+    print(f"  C - P        = {lhs:.6f}")
+    print(f"  S - Ke^(-rT) = {rhs:.6f}")
 
     # Delta parity
     call_delta = bs.call_delta(S, K, r, T, sigma)

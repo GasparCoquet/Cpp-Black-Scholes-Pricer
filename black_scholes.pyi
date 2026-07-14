@@ -1,5 +1,9 @@
 """Type stubs for black_scholes C++ extension module."""
 
+def norm_cdf(x: float) -> float:
+    """Cumulative distribution function of the standard normal distribution."""
+    ...
+
 def call_price(S: float, K: float, r: float, T: float, sigma: float) -> float:
     """
     Calculate Black-Scholes call option price.
@@ -28,20 +32,12 @@ def put_delta(S: float, K: float, r: float, T: float, sigma: float) -> float:
     """Calculate put option delta."""
     ...
 
-def call_gamma(S: float, K: float, r: float, T: float, sigma: float) -> float:
-    """Calculate call option gamma."""
+def gamma(S: float, K: float, r: float, T: float, sigma: float) -> float:
+    """Calculate option gamma (identical for calls and puts)."""
     ...
 
-def put_gamma(S: float, K: float, r: float, T: float, sigma: float) -> float:
-    """Calculate put option gamma."""
-    ...
-
-def call_vega(S: float, K: float, r: float, T: float, sigma: float) -> float:
-    """Calculate call option vega."""
-    ...
-
-def put_vega(S: float, K: float, r: float, T: float, sigma: float) -> float:
-    """Calculate put option vega."""
+def vega(S: float, K: float, r: float, T: float, sigma: float) -> float:
+    """Calculate option vega (identical for calls and puts)."""
     ...
 
 def call_theta(S: float, K: float, r: float, T: float, sigma: float) -> float:

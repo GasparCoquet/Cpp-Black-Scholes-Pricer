@@ -45,6 +45,14 @@ Output:
 ```
 Call Price: 10.4506
 Put Price:  5.57353
+Call Delta: 0.636831
+Put  Delta: -0.363169
+Gamma:      0.018762
+Vega:       37.524
+Call Theta: -6.41403
+Put  Theta: -1.65788
+Call Rho:   53.2325
+Put  Rho:   -41.8905
 ```
 
 ### Run benchmarks
@@ -78,7 +86,7 @@ Or run directly:
 
 ### Test Coverage
 
-The test suite includes 13 comprehensive tests:
+The test suite covers:
 - **Pricing**: Call and Put prices against reference values
 - **Greeks**: Delta, Gamma, Vega, Theta, Rho calculations
 - **Relationships**: Delta parity (Call Δ - Put Δ = 1)
@@ -154,14 +162,6 @@ print(f"Delta: {delta:.6f}")
 ```bash
 python examples/python_example.py
 ```
-
-### Performance Benefits
-
-Python bindings provide **10-100x speedup** over pure Python implementations:
-- C++ compiled code
-- No Python overhead
-- Perfect for high-frequency calculations
-- Ideal for backtesting and real-time pricing
 
 ## Project Structure
 
