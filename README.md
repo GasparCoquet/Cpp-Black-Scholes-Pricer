@@ -133,8 +133,8 @@ handed, mapping across with put-call parity. An in-the-money price is mostly
 intrinsic value, and the vol-dependent part is buried under it. A 250/100 call
 with 0.02y to expiry is worth `150.000000000152`, so a `double` holds only about
 four significant digits of its time value and no solver could then recover sigma
-to better than ~1e-5. Its out-of-the-money twin is worth `1.5199e-10` -- pure
-time value at full precision -- and inverts cleanly.
+to better than ~1e-5. Its out-of-the-money twin is worth `1.5199e-10`, pure
+time value at full precision, and inverts cleanly.
 
 It returns **NaN**, not a number, when no volatility could have produced the
 price:
@@ -163,7 +163,7 @@ zero vol is precisely the silent-garbage failure this section is about.
 
 ### Degenerate inputs
 
-`T = 0` is not an exotic input -- it is every option on its expiry date -- and
+`T = 0` is not an exotic input, it is every option on its expiry date, and
 `sigma = 0` is what a vol solver hands you when it hits its lower bound. Both,
 along with `S = 0` and `K = 0`, used to divide by `sigma*sqrt(T)` or take
 `log(0)` and return a silent NaN. They now return the correct limit:
@@ -174,7 +174,7 @@ along with `S = 0` and `K = 0`, used to divide by `sigma*sqrt(T)` or take
 | `sigma = 0` | Discounted intrinsic, `max(S*e^-qT - K*e^-rT, 0)` for a call. |
 | `S = 0` | Call is worthless; the put is a certain payoff worth `K*e^-rT`. |
 | `K = 0` | The call is the forward, `S*e^-qT`; the put is worthless. |
-| On the expiry kink | Gamma is `+inf` and theta `-inf`. That is the true limit of a kinked payoff, and it is what "gamma explodes into expiry" means -- reported loudly, not as NaN. |
+| On the expiry kink | Gamma is `+inf` and theta `-inf`. That is the true limit of a kinked payoff, and it is what "gamma explodes into expiry" means, reported loudly, not as NaN. |
 | `S < 0`, `K < 0`, `T < 0`, `sigma < 0`, or any non-finite input | NaN. These are caller bugs, not limiting cases. |
 
 ## Testing
