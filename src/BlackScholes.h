@@ -92,6 +92,15 @@ public:
     // and when the price implies a volatility above 1000%.  A garbage IV that
     // silently reads 0.31 is far more dangerous on a trading system than one
     // that is obviously NaN.  A price exactly on the lower bound returns 0.0.
+    //
+    // NaN is also returned when the option is so deep in the money that a double
+    // cannot carry its time value underneath the intrinsic.  Inversion goes via
+    // the out-of-the-money twin, and forming it costs a subtraction of two nearly
+    // equal numbers: a 250/25 call at T = 0.02 and sigma = 2.0 differs from its
+    // own intrinsic by 2.8e-14, below the rounding error of the operands.  Every
+    // sigma from 0 to well past 1% then produces the same double, so no answer
+    // exists to return: neither 0.0 nor the plausible number a solver run on
+    // that residue would converge to.  Quote and invert the OTM wing instead.
     [[nodiscard]] static double call_implied_vol(double price, double S, double K, double r, double T, double q = 0.0) noexcept;
     [[nodiscard]] static double put_implied_vol(double price, double S, double K, double r, double T, double q = 0.0) noexcept;
 };

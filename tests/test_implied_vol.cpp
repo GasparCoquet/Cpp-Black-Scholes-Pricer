@@ -163,10 +163,56 @@ void test_no_arbitrage_bounds() {
     CHECK(std::isnan(BS::call_implied_vol(A * (1.0 - 1e-15), S, K, r, T, q)));
 }
 
+// ---------------------------------------------------------------------------
+// The parity map is a subtraction of two nearly equal numbers.  Deep in the
+// money it can destroy every digit of the time value, and the solver must say
+// so rather than invert the rounding error that is left over.
+// ---------------------------------------------------------------------------
+
+void test_cancellation_is_refused_not_invented() {
+    // 50/25, one day, 20% vol.  The call is worth exactly its intrinsic to the
+    // last bit of a double, so after the map nothing at all survives.  The old
+    // code read that as "sigma = 0" and returned 0.0 for a 20-vol option.
+    {
+        const double S = 50, K = 25, r = 0.0, T = 1.0 / 365.0, q = 0.0;
+        const double price = BS::call_price(S, K, r, T, 0.20, q);
+        CHECK(std::isnan(BS::call_implied_vol(price, S, K, r, T, q)));
+    }
+
+    // 250/25, T = 0.02, sigma = 2.0.  Here the whole time value survives the
+    // subtraction as 2.8e-14 against a 5.0e-14 noise floor, so the solver used
+    // to converge on noise and return a clean-looking number 12 vol points off.
+    {
+        const double S = 250, K = 25, r = 0.10, T = 0.02, q = 0.0;
+        const double price = BS::call_price(S, K, r, T, 2.00, q);
+        CHECK(std::isnan(BS::call_implied_vol(price, S, K, r, T, q)));
+    }
+
+    // Same failure through the other arm of the map: a deep in-the-money put,
+    // B > A.  That branch previously had no coverage in any suite.
+    {
+        const double S = 25, K = 250, r = 0.05, T = 0.02, q = 0.0;
+        const double price = BS::put_price(S, K, r, T, 0.30, q);
+        CHECK(std::isnan(BS::put_implied_vol(price, S, K, r, T, q)));
+    }
+
+    // The guard must not fire on ordinary in-the-money options, where the time
+    // value is nowhere near the rounding floor.  Both arms of the map.
+    {
+        const double S = 100, K = 90, r = 0.02, T = 1.0, q = 0.0;
+        CHECK_NEAR(BS::call_implied_vol(BS::call_price(S, K, r, T, 0.20, q), S, K, r, T, q), 0.20, 1e-8);
+    }
+    {
+        const double S = 95, K = 100, r = 0.03, T = 0.5, q = 0.0;
+        CHECK_NEAR(BS::put_implied_vol(BS::put_price(S, K, r, T, 0.25, q), S, K, r, T, q), 0.25, 1e-8);
+    }
+}
+
 int main() {
     test_round_trip();
     test_itm_and_otm_agree();
     test_wings();
     test_no_arbitrage_bounds();
+    test_cancellation_is_refused_not_invented();
     return test::report("Implied volatility");
 }

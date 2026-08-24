@@ -231,12 +231,24 @@ double implied_vol(double price, double S, double K, double r, double T, double 
     // Invert the out-of-the-money twin.  C - P = A - B is exact, so the twin
     // has the same implied vol, but its price is pure time value rather than
     // time value hidden under a mountain of intrinsic.  See the header.
+    //
+    // The map itself is a subtraction of two nearly equal numbers.  Deep in the
+    // money the intrinsic dwarfs the time value, and the subtraction can destroy
+    // every significant digit of what is left: a 250/25 call with T = 0.02 and
+    // sigma = 2.0 prices at 225.049950033316691 against an intrinsic of
+    // 225.049950033316662, so the entire time value survives as 2.8e-14, which
+    // is below the rounding error of the two operands.  Keep what we were handed
+    // so the guard below can tell a real time value from arithmetic noise.
+    const double given = price;
+    bool mapped = false;
     if (is_call && A > B) {
         price = price - (A - B);
         is_call = false;
+        mapped = true;
     } else if (!is_call && B > A) {
         price = price + (A - B);
         is_call = true;
+        mapped = true;
     }
 
     // After the mapping the option is out of the money, so its intrinsic value
@@ -245,12 +257,35 @@ double implied_vol(double price, double S, double K, double r, double T, double 
     const double upper = is_call ? A : B;
     if (!(price >= 0.0)) return kNaN;  // below intrinsic (also catches NaN)
     if (price >= upper) return kNaN;   // no finite sigma reaches the upper bound
-    if (price == 0.0) return 0.0;      // exactly the zero-volatility price
+
+    if (!mapped && price == 0.0) return 0.0;  // exactly the zero-volatility price
 
     const auto reprice = [&](double v) noexcept {
         return is_call ? BlackScholes::call_price(S, K, r, T, v, q)
                        : BlackScholes::put_price(S, K, r, T, v, q);
     };
+
+    if (mapped) {
+        // Absolute rounding error the parity subtraction could have introduced.
+        const double noise = std::numeric_limits<double>::epsilon() *
+                             std::fmax(std::fabs(given), std::fabs(A - B));
+
+        // A time value clear of that floor carries real digits; invert it.
+        // Sitting on the floor is ambiguous, and the two readings are not
+        // interchangeable: either sigma genuinely is negligible, or the
+        // subtraction destroyed a perfectly ordinary volatility.
+        if (price <= 8.0 * noise) {
+            // The twin is out of the money, so its price IS pure time value.
+            // Price it at a small but unambiguously non-zero vol.  If even that
+            // clears the floor, then a floored input really does mean sigma ~ 0.
+            // If it does not, every sigma from 0 to well past 1% maps to the
+            // same double and no answer is recoverable; a 250/25 call at
+            // T = 0.02 is such a case: its entire time value at sigma = 2.0 is
+            // 2.8e-14 against a noise floor of 5.0e-14.
+            constexpr double kResolvableSigma = 0.01;
+            return (reprice(kResolvableSigma) > 8.0 * noise) ? 0.0 : kNaN;
+        }
+    }
 
     // The BS price is strictly increasing in sigma, from the intrinsic value at
     // sigma = 0 to `upper` as sigma -> infinity.  Grow the upper end of the

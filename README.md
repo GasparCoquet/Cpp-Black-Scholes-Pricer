@@ -147,6 +147,20 @@ put:   max(K*e^-rT - S*e^-qT, 0)  <=  price  <  K*e^-rT
 and when the price implies a volatility above 1000%. A garbage IV that silently
 reads 0.31 is far more dangerous than one that is obviously NaN.
 
+**And when the map itself runs out of precision.** Inverting via the OTM twin
+costs a subtraction of two nearly equal numbers, `price - (A - B)`. Deep enough
+in the money that cancellation eats the whole time value:
+
+| | price | intrinsic | time value left |
+|---|---|---|---|
+| 250/25 call, `T=0.02`, `sigma=2.0` | `225.049950033316691` | `225.049950033316662` | `2.8e-14` |
+| 50/25 call, one day, `sigma=0.20` | `25.000000000000000` | `25.000000000000000` | `0.0` |
+
+The noise floor on those operands is `5.0e-14`, so in both rows every surviving
+digit is rounding error. The library detects this and returns NaN. It does not
+return `0.0` for the second row: that is a 20-vol option, and reporting it as
+zero vol is precisely the silent-garbage failure this section is about.
+
 ### Degenerate inputs
 
 `T = 0` is not an exotic input -- it is every option on its expiry date -- and
@@ -174,7 +188,7 @@ Three suites, **30,622 assertions**, all passing in CI:
 | Suite | Checks | What it pins down |
 | --- | --- | --- |
 | `test_greeks` | 25,947 | Reference values to 1e-12; put-call and delta parity as exact identities; `q` as a spot haircut; **all eight Greeks against a central finite difference** over a 2160-point grid |
-| `test_implied_vol` | 4,618 | Round trip `sigma -> price -> IV` over a 4500-point grid; the wings where unguarded Newton diverges; no-arbitrage prices returning NaN |
+| `test_implied_vol` | 4,623 | Round trip `sigma -> price -> IV` over a 4500-point grid; the wings where unguarded Newton diverges; no-arbitrage prices returning NaN |
 | `test_edge_cases` | 57 | `T=0`, `sigma=0`, `S=0`, `K=0` limits, most of them bit-exact; invalid inputs returning NaN |
 
 The finite-difference comparison is the test that actually pins the Greeks.
