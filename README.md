@@ -1,12 +1,12 @@
 # cpp-black-scholes-pricer
 
-C++ implementation of the Black-Scholes-Merton model: European option pricing,
+C++ implementation of the Black-Scholes-Merton model. European option pricing,
 Greeks, and implied volatility, with Python bindings.
 
 ## Features
 
 - **Pricing**: European calls and puts, with a continuous dividend yield `q`.
-  Setting `q = r` gives Black-76 (options on futures); setting `q` to the
+  Setting `q = r` gives Black-76 (options on futures). Setting `q` to the
   foreign rate gives FX options.
 - **Greeks**: Delta, Gamma, Vega, Theta, Rho. Every one of them is checked
   against a central finite difference of the price over a 2160-point parameter
@@ -32,7 +32,7 @@ Greeks, and implied volatility, with Python bindings.
 Theta is `dV/dt` per year (not `dV/dT`). Vega is `dV/dsigma` per 1.00 of vol,
 not per vol point. Rho is `dV/dr` per 1.00 of rate.
 
-Discounting is **continuous**: the put-call parity identity this library
+Discounting is **continuous**. The put-call parity identity this library
 satisfies is `C - P = S*e^(-qT) - K*e^(-rT)`.
 
 ## Build
@@ -122,7 +122,7 @@ double iv = BlackScholes::call_implied_vol(call, S, K, r, T);
 
 `call_implied_vol` / `put_implied_vol` solve for the sigma that reprices an
 observed premium. The iteration is Newton-Raphson on vega, guarded by a bracket
-that only ever shrinks: whenever vega collapses (deep in- or out-of-the-money,
+that only ever shrinks. Whenever vega collapses (deep in- or out-of-the-money,
 where the price is numerically flat in sigma) or a Newton step would jump
 outside the bracket, the solver takes a bisection step instead. That keeps
 Newton's fast convergence where the function is well behaved and bisection's
@@ -130,7 +130,7 @@ guaranteed convergence where it is not.
 
 Internally it always inverts the **out-of-the-money** twin of whatever it is
 handed, mapping across with put-call parity. An in-the-money price is mostly
-intrinsic value, and the vol-dependent part is buried under it: a 250/100 call
+intrinsic value, and the vol-dependent part is buried under it. A 250/100 call
 with 0.02y to expiry is worth `150.000000000152`, so a `double` holds only about
 four significant digits of its time value and no solver could then recover sigma
 to better than ~1e-5. Its out-of-the-money twin is worth `1.5199e-10` -- pure
@@ -158,7 +158,7 @@ in the money that cancellation eats the whole time value:
 
 The noise floor on those operands is `5.0e-14`, so in both rows every surviving
 digit is rounding error. The library detects this and returns NaN. It does not
-return `0.0` for the second row: that is a 20-vol option, and reporting it as
+return `0.0` for the second row. That is a 20-vol option, and reporting it as
 zero vol is precisely the silent-garbage failure this section is about.
 
 ### Degenerate inputs
@@ -193,9 +193,9 @@ Three suites, **30,622 assertions**, all passing in CI:
 
 The finite-difference comparison is the test that actually pins the Greeks.
 `gamma > 0` and `theta < 0` pass just as happily for a gamma that is 10x too
-large; differentiating the price numerically does not. It catches what sign
-checks sail past: a dropped `e^-qT` on the spot leg, a factor of 2 in the theta
-diffusion term, or theta returned as `dV/dT` instead of `dV/dt`.
+large. Differentiating the price numerically does not. It catches what sign
+checks sail past, such as a dropped `e^-qT` on the spot leg, a factor of 2 in
+the theta diffusion term, or theta returned as `dV/dT` instead of `dV/dt`.
 
 ### A note on assert()
 
